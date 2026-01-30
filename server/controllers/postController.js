@@ -12,20 +12,36 @@ const createPost = async(req,res)=>{
     })
 
     return res.status(201).json({
-    message: "Post created successfully",
-    post
-  })
+      message: "Post created successfully",
+      post
+    })
 }
 
-const getAllPosts = async(req,res)=>{
-  
-  const posts = await Post.find().populate('author','name')
+const getPosts = async(req,res)=>{
+  const page = parseInt(req.query.page,10)||1
+  const limit = Math.min(parseInt(req.query.limit, 10)|| 10, 50)
+
+  const skip = (page - 1)* limit
+
+  const totalPosts = await Post.countDocuments()
+  const totalPages = Math.ceil(totalPosts/limit)
+
+  const posts = await Post.find()
+                          .sort({createdAt:-1})
+                          .skip(skip)
+                          .limit(limit)
+                          .populate('author','name')
 
   return res.status(200).json({
-    message: "All posts fetched",
+    message: "Returned all posts",
+    page,
+    totalPages,
+    totalPosts,
     posts
   })
+
 }
+
 
 const getPostById = async(req,res)=>{
   const {id} = req.params
@@ -85,4 +101,8 @@ const deletePost = async(req,res)=>{
   })
 }
 
-module.exports = {createPost, getAllPosts, getPostById, updatePost, deletePost}
+
+
+
+
+module.exports = {createPost, getPosts, getPostById, updatePost, deletePost }
