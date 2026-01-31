@@ -18,20 +18,31 @@ const createPost = async(req,res)=>{
 }
 
 const getPosts = async(req,res)=>{
+  const {search,author} = req.query
   const page = parseInt(req.query.page,10)||1
   const limit = Math.min(parseInt(req.query.limit, 10)|| 10, 50)
 
   const skip = (page - 1)* limit
 
-  const totalPosts = await Post.countDocuments()
-  const totalPages = Math.ceil(totalPosts/limit)
-
-  const posts = await Post.find()
+  const query = {}
+  if(author){
+    query.author = author
+  }
+  if(search){
+    query.$or = [
+      { title: { $regex: search, $options:'i'}},
+      { content: { $regex: search, $options:'i'}},
+    ]
+  }
+  
+  const posts = await Post.find(query)
                           .sort({createdAt:-1})
                           .skip(skip)
                           .limit(limit)
                           .populate('author','name')
-
+  
+  const totalPosts = await Post.countDocuments(query)
+  const totalPages = Math.ceil(totalPosts/limit)
   return res.status(200).json({
     message: "Returned all posts",
     page,
