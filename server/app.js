@@ -9,8 +9,6 @@ app.use(cookieParser())
 
 app.use('/auth',authRoutes)
 
-app.get('/health',(req,res)=>{
-    res.send('Health route')
-})
+
 
 module.exports = app
