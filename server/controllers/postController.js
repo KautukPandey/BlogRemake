@@ -72,25 +72,35 @@ const updatePost = async(req,res)=>{
   const {id} = req.params
   const { title, content } = req.body
 
-  if (!title || !content) {
+  if (!title && !content) {
     return res.status(400).json({ message: "Title and content are required" })
   }
   const post = await Post.findById(id)
   if(!post){
     return res.status(404).json({message:"No post found"})
   }
-  if(req.user._id.toString()!==post.author.toString()){
-    return res.status(403).json({message:"Not the owner"})
+  if(req.user.role!=="admin"){
+    if(req.user._id.toString()!==post.author.toString()){
+      return res.status(403).json({message:"Not the owner"})
+    }
   }
 
-  const post1 = await Post.findByIdAndUpdate(
-    id,
-    {title,content},
-    {new:true,runValidators:true}
-  )
+  if(title){
+    post.title = title
+  }
+  if(content){
+    post.content = content
+  }
+
+  await post.save()
+  // const post1 = await Post.findByIdAndUpdate(
+  //   id,
+  //   {title,content},
+  //   {new:true,runValidators:true}
+  // )
   return res.status(200).json({
     message: "Post updated",
-    post1
+    post
   })
 
 }
