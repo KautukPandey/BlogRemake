@@ -93,11 +93,7 @@ const updatePost = async(req,res)=>{
   }
 
   await post.save()
-  // const post1 = await Post.findByIdAndUpdate(
-  //   id,
-  //   {title,content},
-  //   {new:true,runValidators:true}
-  // )
+  
   return res.status(200).json({
     message: "Post updated",
     post

@@ -58,34 +58,50 @@ const getCommentsForPost = async(req,res)=>{
 
 }
 
-// const deleteComment = async(req,res)=>{
-//     const { id } = req.params
+const deleteComment = async(req,res)=>{
+    const { id } = req.params
 
-//     const comment = await Comment.findById(id)
-//     if (!comment || comment.isDeleted) {
-//         return res.status(404).json({ message: "Comment not found" })
-//     }
+    const comment = await Comment.findById(id)
+    if (!comment || comment.isDeleted) {
+        return res.status(404).json({ message: "Comment not found" })
+    }
 
-//     if(req.user._id.toString()!==comment.author.toString()){
-//         return res.status(403).json({message: "Not the owner"})
-//     }
+    if(req.user._id.toString()!==comment.author.toString()){
+        return res.status(403).json({message: "Not the owner"})
+    }
 
-//     comment.isDeleted = true
+    comment.isDeleted = true
+    await comment.save()
+    return res.status(200).json({
+        message: "Soft deleted comment",
+        comment
+    })
+}
 
-//     return res.status(200).json({
-//         message: "Soft deleted comment",
-//         comment
-//     })
-// }
+const updateComment = async(req,res)=>{
+    const {id} = req.params
+    const {content} = req.body
+    const comment = await Comment.findById(id)
+    if(!comment || comment.isDeleted){
+        return res.status(404).json({message:"Comment does not exists"})
+    }
+    if(!content){
+        return res.status(400).json({message:"Content empty"})
+    }
+    if(req.user.role!=="admin"){
+        if(req.user._id.toString()!==comment.author.toString()){
+            return res.status(403).json({message:"Not the owner or admin"})
+        }
+    }
 
-// const updateComment = async(req,res)=>{
-//     const {id} = req.params
+    comment.content = content
+    await comment.save()
 
-//     const comment = await Comment.findById(id)
-//     if(!comment){
-//         return res.status(404).json({message:"Comment does not exists"})
-//     }
+    return res.status(200).json({
+        message: "Comment Updated",
+        comment
+    })
 
-// }
+}
 
-module.exports = { createComment , getCommentsForPost , deleteComment }
+module.exports = { createComment , getCommentsForPost , deleteComment , updateComment }
